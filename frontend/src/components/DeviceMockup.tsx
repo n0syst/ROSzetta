@@ -36,6 +36,11 @@ const isL009 = (b?: string | null): boolean =>
 const isRb4011 = (b?: string | null): boolean =>
   !!b && /RB?\s*4011/i.test(b);
 
+// RB3011UiAS-RM — чёрный 1U: USB-3.0 + SFP (1G) + 10×GigE двумя группами
+// с центральной LED-матрицей, справа LCD-экран.
+const isRb3011 = (b?: string | null): boolean =>
+  !!b && /RB?\s*3011/i.test(b);
+
 // CRS317-1G-16S+ — белый 1U-свич: 16×SFP+ + 1 GigE (ETH/BOOT).
 const isCrs317 = (b?: string | null): boolean =>
   !!b && /CRS\s*317(?:-?\s*1G)?(?:-?\s*16S)?/i.test(b);
@@ -242,6 +247,9 @@ export default function DeviceMockup({ boardName, interfaces }: DeviceMockupProp
   }
   if (isRb4011(boardName)) {
     return <Rb4011Mockup interfaces={interfaces} />;
+  }
+  if (isRb3011(boardName)) {
+    return <Rb3011Mockup interfaces={interfaces} />;
   }
   if (isCrs317(boardName)) {
     return <Crs317Mockup interfaces={interfaces} />;
@@ -795,6 +803,242 @@ function Rb4011Mockup({ interfaces }: { interfaces: InterfaceInfo[] }) {
           >
             PoE out
           </text>
+        </svg>
+      </div>
+      <MockupLegend />
+    </div>
+  );
+}
+
+// --------- RB3011UiAS-RM ---------
+// Чёрный 1U: слева USB-3.0 (синий) + SFP (1G), полоска POE IN над ether1.
+// Две группы по 5 GigE портов (ETH1-5 / ETH6-10) с центральной LED-матрицей 5×2.
+// Справа — LCD-экран и лого MikroTik RouterBOARD.
+// PoE-out на ether10 (помечается жёлтой ★ на корпусе).
+
+function Rb3011Mockup({ interfaces }: { interfaces: InterfaceInfo[] }) {
+  const W = 1000, H = 66;
+  const portW = 36, portH = 32, gap = 3;
+  const portsY = (H - portH) / 2 - 1;
+
+  // Слева: USB → SFP → POE IN полоска
+  const usbX = 8;
+  const usbW = 26;
+  const sfpX = usbX + usbW + 6;          // 40
+  const sfpW = 36;
+  const group1StartX = sfpX + sfpW + 14; // 90 — начало ETH1
+  const ledBlockW = 36;                  // центральный LED-блок
+  const ledBlockGap = 6;
+  const group2StartX =
+    group1StartX + 5 * (portW + gap) - gap + ledBlockGap + ledBlockW + ledBlockGap;
+  const lcdX = group2StartX + 5 * (portW + gap) - gap + 14;
+  const lcdSize = 56;
+
+  const sfp =
+    findPort(interfaces, 'sfp1') ||
+    findPort(interfaces, 'sfp-sfpplus1');
+
+  const portsLeft = [
+    { name: 'ether1', label: '1' },
+    { name: 'ether2', label: '2' },
+    { name: 'ether3', label: '3' },
+    { name: 'ether4', label: '4' },
+    { name: 'ether5', label: '5' },
+  ];
+  const portsRight = [
+    { name: 'ether6',  label: '6'  },
+    { name: 'ether7',  label: '7'  },
+    { name: 'ether8',  label: '8'  },
+    { name: 'ether9',  label: '9'  },
+    { name: 'ether10', label: '10' },
+  ];
+
+  return (
+    <div className="card">
+      <div className="text-xs text-mk-mute mb-2">
+        Лицевая панель <b>RB3011UiAS-RM</b> · подсветка портов в реальном времени
+      </div>
+      <div className="overflow-x-auto">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ width: `${W}px`, height: '66px', maxWidth: '100%', display: 'block' }}
+          preserveAspectRatio="xMinYMid meet"
+        >
+          {/* Чёрный корпус */}
+          <rect x="1" y="1" width={W - 2} height={H - 2} rx="3" fill="#1a1a1a" stroke="#3a3a3a" strokeWidth="1" />
+
+          {/* Декоративные вентрешётки по верху/низу */}
+          {[6, H - 8].map((vy) => (
+            <g key={`vent-${vy}`} opacity="0.6">
+              {Array.from({ length: 40 }).map((_, vi) => (
+                <rect key={vi} x={4 + vi * 4.5} y={vy} width={3} height={1} fill="#555" />
+              ))}
+            </g>
+          ))}
+
+          {/* USB 3.0 (синий разъём) */}
+          <text x={usbX + usbW / 2} y={9} fontSize="3" fill="#888" textAnchor="middle" fontWeight="700">SS←→</text>
+          <rect x={usbX} y={portsY + 4} width={usbW} height={portH - 8} rx="1" fill="#0a0a0a" stroke="#666" strokeWidth="0.5" />
+          <rect x={usbX + 2} y={portsY + 6} width={usbW - 4} height={portH - 12} fill="#1a4b8c" />
+          <rect x={usbX + 6} y={portsY + 9} width={usbW - 12} height={portH - 18} fill="#0a0a0a" />
+          <text x={usbX + usbW / 2} y={H - 2} fontSize="3" fill="#888" textAnchor="middle">USB 3.0</text>
+
+          {/* SFP-слот (1G) */}
+          <text x={sfpX + sfpW / 2} y={9} fontSize="3.5" fill="#aaa" textAnchor="middle" fontWeight="700">SFP</text>
+          {sfpSvgPort(sfpX, portsY, sfpW, portH, sfp, { detail: 'SFP · 1 GbE', fallbackName: 'sfp1' })}
+          <text x={sfpX + sfpW / 2} y={H - 2} fontSize="3" fill="#888" textAnchor="middle">SFP</text>
+
+          {/* «POE IN» — подпись над портом ether1 */}
+          <text
+            x={group1StartX + portW / 2}
+            y={9}
+            fontSize="3.5"
+            fill="#f0851a"
+            textAnchor="middle"
+            fontWeight="700"
+          >
+            POE IN
+          </text>
+          {/* Оранжевая полоска над ether1 */}
+          <rect x={group1StartX} y="11" width={portW} height="2" fill="#f0851a" />
+
+          {/* «GIGABIT ETHERNET» — подпись над группой 1 */}
+          <text
+            x={group1StartX + (5 * (portW + gap) - gap) / 2 + 18}
+            y={9}
+            fontSize="3.5"
+            fill="#cccccc"
+            textAnchor="middle"
+            fontWeight="700"
+          >
+            GIGABIT ETHERNET
+          </text>
+
+          {/* Лейблы цифр ETH1-5 */}
+          {portsLeft.map((p, i) => {
+            const x = group1StartX + i * (portW + gap);
+            return (
+              <text key={`lbl-${p.name}`} x={x + portW / 2} y="17" fontSize="5" fill="#ffffff" fontWeight="800" textAnchor="middle">
+                {p.label}
+              </text>
+            );
+          })}
+          {/* Порты ETH1-5 */}
+          {portsLeft.map((p, i) => {
+            const x = group1StartX + i * (portW + gap);
+            const it = findPort(interfaces, p.name);
+            const isPoeIn = i === 0;
+            const detail = isPoeIn ? `порт ${p.label} · PoE in` : `порт ${p.label}`;
+            return (
+              <g key={p.name}>
+                {rj45SvgPort(x, portsY, portW, portH, it, { detail, fallbackName: p.name })}
+              </g>
+            );
+          })}
+          {/* Подпись «ETH1»…«ETH5» снизу */}
+          {portsLeft.map((p, i) => {
+            const x = group1StartX + i * (portW + gap);
+            return (
+              <text key={`b-${p.name}`} x={x + portW / 2} y={H - 2} fontSize="3" fill="#aaa" textAnchor="middle" fontWeight="700">
+                ETH{p.label}
+              </text>
+            );
+          })}
+
+          {/* Центральная LED-матрица статусов 5×2 */}
+          {(() => {
+            const lx = group1StartX + 5 * (portW + gap) - gap + ledBlockGap;
+            const cy1 = portsY + 9;
+            const cy2 = portsY + portH - 9;
+            return (
+              <g>
+                <text x={lx + ledBlockW / 2} y={portsY - 1} fontSize="3" fill="#888" textAnchor="middle">1·2·3·4·5</text>
+                <text x={lx + ledBlockW / 2} y={portsY + portH + 8} fontSize="3" fill="#888" textAnchor="middle">6·7·8·9·10</text>
+                <rect x={lx} y={portsY + 2} width={ledBlockW} height={portH - 4} rx="1.5" fill="#0a0a0a" stroke="#444" strokeWidth="0.4" />
+                {[0, 1, 2, 3, 4].map((i) => {
+                  const cx = lx + 4 + i * 7;
+                  const top = findPort(interfaces, `ether${i + 1}`);
+                  const bot = findPort(interfaces, `ether${i + 6}`);
+                  const tp = portPalette(top);
+                  const bp = portPalette(bot);
+                  return (
+                    <g key={`led-${i}`}>
+                      <circle cx={cx} cy={cy1} r="1.4" fill={tp.color}>
+                        <title>{`ether${i + 1}: ${tp.label}`}</title>
+                      </circle>
+                      <circle cx={cx} cy={cy2} r="1.4" fill={bp.color}>
+                        <title>{`ether${i + 6}: ${bp.label}`}</title>
+                      </circle>
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          })()}
+
+          {/* «GIGABIT ETHERNET» — подпись над группой 2 */}
+          <text
+            x={group2StartX + (5 * (portW + gap) - gap) / 2}
+            y={9}
+            fontSize="3.5"
+            fill="#cccccc"
+            textAnchor="middle"
+            fontWeight="700"
+          >
+            GIGABIT ETHERNET
+          </text>
+          {/* Жёлтая ★ над ether10 (PoE out) */}
+          <text
+            x={group2StartX + 4 * (portW + gap) + portW / 2}
+            y={13}
+            fontSize="5"
+            fill="#f5d600"
+            textAnchor="middle"
+            fontWeight="900"
+          >
+            ★
+          </text>
+
+          {/* Лейблы цифр ETH6-10 */}
+          {portsRight.map((p, i) => {
+            const x = group2StartX + i * (portW + gap);
+            return (
+              <text key={`lbl-${p.name}`} x={x + portW / 2} y="17" fontSize="5" fill="#ffffff" fontWeight="800" textAnchor="middle">
+                {p.label}
+              </text>
+            );
+          })}
+          {/* Порты ETH6-10 */}
+          {portsRight.map((p, i) => {
+            const x = group2StartX + i * (portW + gap);
+            const it = findPort(interfaces, p.name);
+            const isPoeOut = i === 4;
+            const detail = isPoeOut ? `порт ${p.label} · PoE out` : `порт ${p.label}`;
+            return (
+              <g key={p.name}>
+                {rj45SvgPort(x, portsY, portW, portH, it, { detail, fallbackName: p.name })}
+              </g>
+            );
+          })}
+          {/* Подписи «ETH6»…«ETH10» снизу */}
+          {portsRight.map((p, i) => {
+            const x = group2StartX + i * (portW + gap);
+            return (
+              <text key={`b-${p.name}`} x={x + portW / 2} y={H - 2} fontSize="3" fill="#aaa" textAnchor="middle" fontWeight="700">
+                ETH{p.label}
+              </text>
+            );
+          })}
+
+          {/* LCD-экран справа */}
+          <rect x={lcdX} y={(H - lcdSize) / 2} width={lcdSize} height={lcdSize} rx="2" fill="#bdbdb6" stroke="#444" strokeWidth="0.6" />
+          <rect x={lcdX + 4} y={(H - lcdSize) / 2 + 4} width={lcdSize - 8} height={lcdSize - 8} fill="#a0a39a" />
+
+          {/* Лого справа */}
+          <text x={W - 6} y={20} fontSize="6.5" fill="#ffffff" textAnchor="end" fontWeight="800" fontFamily="Inter, sans-serif">MikroTik</text>
+          <text x={W - 6} y={36} fontSize="9" fill="#ffffff" textAnchor="end" fontWeight="900" fontFamily="Inter, sans-serif">routerboard</text>
+          <text x={W - 6} y={H - 4} fontSize="4" fill="#aaaaaa" textAnchor="end" fontFamily="Inter, sans-serif" letterSpacing="0.5">RB 3011 UiAS-RM</text>
         </svg>
       </div>
       <MockupLegend />
