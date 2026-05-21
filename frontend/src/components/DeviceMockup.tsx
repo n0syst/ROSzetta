@@ -263,12 +263,8 @@ export default function DeviceMockup({ boardName, interfaces }: DeviceMockupProp
   if (isChr(boardName)) {
     return <ChrMockup interfaces={interfaces} />;
   }
-  return (
-    <div className="card text-sm text-mk-mute">
-      Мокап для модели <span className="font-mono">{boardName || '—'}</span> ещё не подготовлен.
-      Статусы интерфейсов смотрите во вкладке «Интерфейсы».
-    </div>
-  );
+  // Для всех моделей без собственного мокапа — универсальная CHR-схема портов.
+  return <ChrMockup interfaces={interfaces} boardName={boardName} generic />;
 }
 
 // --------- hAP ac lite ---------
@@ -1208,7 +1204,17 @@ function Crs317Mockup({ interfaces }: { interfaces: InterfaceInfo[] }) {
 // Простой белый прямоугольник: слева лейбл «CHR», справа порты ether* в ряд.
 // Количество портов — динамическое (сколько отдало устройство).
 
-function ChrMockup({ interfaces }: { interfaces: InterfaceInfo[] }) {
+// generic=true — этот мокап используется как универсальная заглушка для
+// модели, у которой нет собственного мокапа (а не как реальный CHR).
+function ChrMockup({
+  interfaces,
+  boardName,
+  generic,
+}: {
+  interfaces: InterfaceInfo[];
+  boardName?: string | null;
+  generic?: boolean;
+}) {
   const ports = interfaces
     .filter((it) => /^ether/i.test(it.name))
     .sort((a, b) => {
@@ -1233,7 +1239,11 @@ function ChrMockup({ interfaces }: { interfaces: InterfaceInfo[] }) {
   return (
     <div className="card">
       <div className="text-xs text-mk-mute mb-2">
-        Виртуальный роутер <b>MikroTik CHR</b> · подсветка портов в реальном времени
+        {generic ? (
+          <>Модель <b>{boardName || '—'}</b> · мокап не подготовлен, показана универсальная схема портов</>
+        ) : (
+          <>Виртуальный роутер <b>MikroTik CHR</b> · подсветка портов в реальном времени</>
+        )}
       </div>
       <div className="overflow-x-auto">
         <svg
@@ -1246,8 +1256,8 @@ function ChrMockup({ interfaces }: { interfaces: InterfaceInfo[] }) {
           <rect x="1" y="1" width={W - 2} height={H - 2} rx="6" fill="#ffffff" stroke="#cccccc" strokeWidth="1" />
 
           {/* Лейбл mikrotik слева (шрифт в 2 раза мельче) */}
-          <text x={padX} y={H / 2} fontSize="14" fill="#1a1a1a" fontWeight="800" fontFamily="Inter, sans-serif">mikrotik</text>
-          <text x={padX} y={H / 2 + 12} fontSize="6" fill="#666666">Cloud Hosted Router</text>
+          <text x={padX} y={H / 2} fontSize="14" fill="#1a1a1a" fontWeight="800" fontFamily="Inter, sans-serif">MikroTik</text>
+          <text x={padX} y={H / 2 + 12} fontSize="6" fill="#666666">{generic ? (boardName || 'RouterOS') : 'Cloud Hosted Router'}</text>
 
           {/* Разделитель */}
           <line x1={padX + labelW - 4} y1="8" x2={padX + labelW - 4} y2={H - 8} stroke="#dddddd" strokeWidth="1" />
