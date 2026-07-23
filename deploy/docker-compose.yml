@@ -62,6 +62,7 @@ services:
       BACKUP_FTP_HOST: "0.0.0.0"
       BACKUP_FTP_PORT: "2121"
       BACKUP_PUSH_HOST: ${BACKUP_PUSH_HOST:-}
+      BACKUP_FTP_PASV_ADDRESS: ${BACKUP_FTP_PASV_ADDRESS:-}
     ports:
       - "8000:8000"
       - "2121:2121"
