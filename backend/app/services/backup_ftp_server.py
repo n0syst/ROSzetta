@@ -217,14 +217,17 @@ def detect_host_ip() -> str:
     except Exception:
         return "0.0.0.0"
 
-def detect_push_host(default: str | None = None) -> str:
-    """
-    Возвращает адрес контроллера для MikroTik.
-    Если задан явно — используем его.
-    Иначе определяем автоматически.
-    """
+def detect_push_host(default: str | None = None, target: str | None = None) -> str:
     if default:
         return default
 
-    return detect_host_ip()
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect((target or "8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception as exc:
+        logger.warning("Cannot detect push host: {}", exc)
+        return "0.0.0.0"
 
