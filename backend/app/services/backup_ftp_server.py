@@ -72,7 +72,7 @@ class _Server:
         _Handler.passive_ports = range(30000, 30050)
         pasv_address = os.getenv("BACKUP_FTP_PASV_ADDRESS") or detect_host_ip()
         if pasv_address and pasv_address != "0.0.0.0": _Handler.masquerade_address = pasv_address
-        logger.info("Backup FTP server started on {}:{} PASV={} ports=30000-30049", self.host, self.port, getattr(self._handler_cls, "masquerade_address", None),)
+        logger.info("FTP PASV address: {}", pasv_address)
         self._handler_cls = _Handler
 
     # ---------- lifecycle ----------
