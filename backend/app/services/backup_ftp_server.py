@@ -70,8 +70,9 @@ class _Server:
         _Handler.banner = "mikrocloud backup ftp ready"
         # Пассивный диапазон фиксируем (нужно открыть в compose).
         _Handler.passive_ports = range(30000, 30050)
-        pasv_address = os.getenv("BACKUP_FTP_PASV_ADDRESS") or detect_host_ip()
-        if pasv_address and pasv_address != "0.0.0.0": _Handler.masquerade_address = pasv_address
+        pasv_address = os.getenv("BACKUP_FTP_PASV_ADDRESS")
+        if pasv_address:
+        _Handler.masquerade_address = pasv_address
         logger.info("FTP PASV address: {}", pasv_address)
         self._handler_cls = _Handler
 
@@ -200,34 +201,23 @@ def stop_server() -> None:
             _INSTANCE = None
 
 
-def detect_host_ip() -> str:
-    """Определяет IP адрес машины, доступный из сети устройств."""
+def detect_host_ip(target: str = "8.8.8.8") -> str:
+    """Определяет локальный адрес через маршрут к target."""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(1)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
-
-        # Не отдаём docker/loopback адреса
-        if ip.startswith("127.") or ip.startswith("172."):
-            return "0.0.0.0"
-
-        return ip
-    except Exception:
-        return "0.0.0.0"
-
-def detect_push_host(default: str | None = None, target: str | None = None) -> str:
-    if default:
-        return default
-
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect((target or "8.8.8.8", 80))
+        s.connect((target, 80))
         ip = s.getsockname()[0]
         s.close()
         return ip
     except Exception as exc:
-        logger.warning("Cannot detect push host: {}", exc)
+        logger.warning("Cannot detect host IP via {}: {}", target, exc)
         return "0.0.0.0"
+
+def detect_push_host(default: str | None = None,target: str | None = None,) -> str:
+    """Возвращает IP контроллера, который видит устройство."""
+    if default:
+        return default
+
+    return detect_host_ip(target or "8.8.8.8")
 
