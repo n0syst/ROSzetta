@@ -217,12 +217,20 @@ def detect_host_ip() -> str:
     except Exception:
         return "0.0.0.0"
 
-def detect_push_host(
-    default: str | None = None,
-    target: str | None = None,
-) -> str:
-    """Совместимая обёртка для определения адреса контроллера."""
+def detect_push_host(default: str | None = None) -> str:
+    """Подсказка: IP контроллера, как его видят устройства.
+    Берётся через udp-сокет к 8.8.8.8 (соединение не открывается).
+    Используется fallback, если в ENV не задан BACKUP_PUSH_HOST.
+    """
     if default:
         return default
-    return detect_host_ip(target or "8.8.8.8")
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0.3)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "0.0.0.0"
 
