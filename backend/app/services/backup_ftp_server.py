@@ -72,7 +72,7 @@ class _Server:
         _Handler.passive_ports = range(30000, 30050)
         pasv_address = os.getenv("BACKUP_FTP_PASV_ADDRESS")
         if pasv_address:
-        _Handler.masquerade_address = pasv_address
+            _Handler.masquerade_address = pasv_address
         logger.info("FTP PASV address: {}", pasv_address)
         self._handler_cls = _Handler
 
