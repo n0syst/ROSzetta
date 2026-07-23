@@ -199,19 +199,19 @@ def stop_server() -> None:
             _INSTANCE = None
 
 
-def detect_push_host(default: str | None = None) -> str:
-    """Подсказка: IP контроллера, как его видят устройства.
-    Берётся через udp-сокет к 8.8.8.8 (соединение не открывается).
-    Используется fallback, если в ENV не задан BACKUP_PUSH_HOST.
-    """
-    if default:
-        return default
+def detect_host_ip() -> str:
+    """Определяет IP адрес машины, доступный из сети устройств."""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(0.3)
+        s.settimeout(1)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
         s.close()
+
+        # Не отдаём docker/loopback адреса
+        if ip.startswith("127.") or ip.startswith("172."):
+            return "0.0.0.0"
+
         return ip
     except Exception:
         return "0.0.0.0"
