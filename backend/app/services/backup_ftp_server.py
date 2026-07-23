@@ -218,6 +218,13 @@ def detect_host_ip() -> str:
         return "0.0.0.0"
 
 def detect_push_host(default: str | None = None) -> str:
-    """Возвращает адрес контроллера для push-бэкапов."""
-    return default or detect_host_ip()
+    """
+    Возвращает адрес контроллера для MikroTik.
+    Если задан явно — используем его.
+    Иначе определяем автоматически.
+    """
+    if default:
+        return default
+
+    return detect_host_ip()
 
