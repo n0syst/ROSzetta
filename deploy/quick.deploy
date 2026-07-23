@@ -1,3 +1,4 @@
-sudo apt install docker-compose-v2 git -y
-git clone https://github.com/VFireman/ROSzetta
+sudo apt install docker-compose git -y
+git clone https://github.com/n0syst/ROSzetta
+cd ./ROSzetta/deploy
 sudo docker compose up -d --build
