@@ -72,7 +72,7 @@ class _Server:
         _Handler.passive_ports = range(30000, 30050)
         pasv_address = os.getenv("BACKUP_FTP_PASV_ADDRESS") or detect_host_ip()
         if pasv_address and pasv_address != "0.0.0.0": _Handler.masquerade_address = pasv_address
-        logger.info("FTP PASV address: {}", pasv_address)
+        logger.info("Backup FTP server started on {}:{} PASV={} ports=30000-30049", self.host, self.port, getattr(self._handler_cls, "masquerade_address", None),)
         self._handler_cls = _Handler
 
     # ---------- lifecycle ----------
@@ -216,3 +216,13 @@ def detect_host_ip() -> str:
         return ip
     except Exception:
         return "0.0.0.0"
+
+def detect_push_host(
+    default: str | None = None,
+    target: str | None = None,
+) -> str:
+    """Совместимая обёртка для определения адреса контроллера."""
+    if default:
+        return default
+    return detect_host_ip(target or "8.8.8.8")
+
