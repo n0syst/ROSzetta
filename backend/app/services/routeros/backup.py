@@ -173,5 +173,5 @@ def create_and_download_backup(
 ) -> BackupFiles:
     """Совместимая обёртка: принимает push_host/port вместо ssh/ftp_port."""
     if not push_host:
-        push_host = detect_push_host(target=device.host)
+        push_host = detect_push_host(target=creds.host)
     return create_backup_via_push(creds, base_name, push_host=push_host, push_port=push_port)
