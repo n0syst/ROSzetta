@@ -70,7 +70,7 @@ class _Server:
         _Handler.banner = "mikrocloud backup ftp ready"
         # Пассивный диапазон фиксируем (нужно открыть в compose).
         _Handler.passive_ports = range(30000, 30050)
-        pasv_address = os.getenv("BACKUP_FTP_PASV_ADDRESS")
+        pasv_address = os.getenv("BACKUP_PUSH_HOST")
         if pasv_address:
             _Handler.masquerade_address = pasv_address
         logger.info("FTP PASV address: {}", pasv_address)
