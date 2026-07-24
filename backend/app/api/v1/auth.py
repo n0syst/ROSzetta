@@ -98,7 +98,7 @@ def change_password(
 ) -> dict[str, bool]:
     if not verify_password(payload.current, user.hashed_password):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Текущий пароль неверный")
-    if len(payload.new) < 4:
+    if len(payload.new) < 6:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Новый пароль слишком короткий")
     user.hashed_password = hash_password(payload.new)
     db.commit()
