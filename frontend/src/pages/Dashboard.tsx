@@ -27,7 +27,7 @@ const BUCKET_COLORS: Record<HeartbeatBucket, string> = {
 };
 
 const BUCKET_LABEL: Record<HeartbeatBucket, string> = {
-  up: 'OK', 'no-net': 'нет интернета', down: 'оффлайн', none: 'нет данных',
+  up: 'OK', down: 'оффлайн', none: 'нет данных',
 };
 
 function HeartbeatGrid({ data }: { data: HeartbeatOut }) {
@@ -70,7 +70,7 @@ function HeartbeatGrid({ data }: { data: HeartbeatOut }) {
         </div>
       )}
       <div className="flex flex-wrap gap-3 text-[11px] text-mk-mute pt-1 border-t border-mk-border">
-        {(['up', 'no-net', 'down', 'none'] as HeartbeatBucket[]).map((b) => (
+        {(['up', 'down', 'none'] as HeartbeatBucket[]).map((b) => (
           <span key={b} className="inline-flex items-center gap-1.5">
             <span className={`w-3 h-3 rounded-sm ${BUCKET_COLORS[b]}`} /> {BUCKET_LABEL[b]}
           </span>
@@ -102,7 +102,6 @@ export default function Dashboard() {
   const up      = devices.filter((d) => d.status === 'up').length;
   const down    = devices.filter((d) => d.status === 'down').length;
   const unknown = devices.filter((d) => d.status !== 'up' && d.status !== 'down').length;
-  const noNet   = devices.filter((d) => d.internet_ok === false).length;
   const abnormal = devices.filter((d) => d.abnormal_reboot).length;
 
   return (
@@ -111,7 +110,6 @@ export default function Dashboard() {
         <StatCard icon={RouterIcon}    label="Устройства" value={devices.length} accent="bg-mk-accent/15 text-mk-accent2" />
         <StatCard icon={CheckCircle2}  label="Online"     value={up}             accent="bg-mk-ok/15 text-mk-ok" />
         <StatCard icon={AlertTriangle} label="Offline"    value={down}           accent="bg-mk-err/15 text-mk-err" />
-        <StatCard icon={WifiOff}       label="Без интернета" value={noNet}       accent="bg-mk-warn/15 text-mk-warn" />
         <StatCard icon={Activity}      label="Аварийные reboot" value={abnormal} accent="bg-mk-warn/15 text-mk-warn" />
       </div>
 
