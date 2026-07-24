@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, Router as RouterIcon, AlertTriangle, CheckCircle2, WifiOff, Bell } from 'lucide-react';
+import { Activity, Router as RouterIcon, AlertTriangle, CheckCircle2, Bell } from 'lucide-react';
 import { api, Alert as AlertT, Device, HeartbeatBucket, HeartbeatOut } from '@/api/client';
 import { useSettings } from '@/store/settings';
 
@@ -54,13 +54,17 @@ function HeartbeatGrid({ data }: { data: HeartbeatOut }) {
                 <div className="text-[10px] text-mk-mute font-mono truncate">{d.host}</div>
               </div>
               <div className="flex-1 grid gap-[1px]" style={{ gridTemplateColumns: `repeat(${data.bins}, minmax(0,1fr))` }}>
-                {d.buckets.map((b, i) => (
-                  <div
-                    key={i}
-                    className={`h-3.5 rounded-[2px] ${BUCKET_COLORS[b]}`}
-                    title={`Бин ${i + 1}/${data.bins}: ${b === "no-net"? BUCKET_LABEL.up: BUCKET_LABEL[b]}`}
-                  />
-                ))}
+                {d.buckets.map((bucket, i) => {
+                  const b: HeartbeatBucket = bucket === "no-net" ? "up" : bucket;
+                
+                  return (
+                    <div
+                      key={i}
+                      className={`h-3.5 rounded-[2px] ${BUCKET_COLORS[b]}`}
+                      title={`Бин ${i + 1}/${data.bins}: ${BUCKET_LABEL[b]}`}
+                    />
+                  );
+                })}
               </div>
               <span className={`badge-${d.status === 'up' ? 'up' : d.status === 'down' ? 'down' : 'unk'} text-[10px]`}>
                 {d.status}
@@ -70,7 +74,7 @@ function HeartbeatGrid({ data }: { data: HeartbeatOut }) {
         </div>
       )}
       <div className="flex flex-wrap gap-3 text-[11px] text-mk-mute pt-1 border-t border-mk-border">
-        {(['up', 'no-net', 'down', 'none'] as HeartbeatBucket[]).map((b) => (
+        {(['up', 'down', 'none'] as HeartbeatBucket[]).map((b) => (
           <span key={b} className="inline-flex items-center gap-1.5">
             <span className={`w-3 h-3 rounded-sm ${BUCKET_COLORS[b]}`} /> {BUCKET_LABEL[b]}
           </span>
@@ -102,7 +106,6 @@ export default function Dashboard() {
   const up      = devices.filter((d) => d.status === 'up').length;
   const down    = devices.filter((d) => d.status === 'down').length;
   const unknown = devices.filter((d) => d.status !== 'up' && d.status !== 'down').length;
-  const noNet   = devices.filter((d) => d.internet_ok === false).length;
   const abnormal = devices.filter((d) => d.abnormal_reboot).length;
 
   return (
@@ -111,7 +114,6 @@ export default function Dashboard() {
         <StatCard icon={RouterIcon}    label="Устройства" value={devices.length} accent="bg-mk-accent/15 text-mk-accent2" />
         <StatCard icon={CheckCircle2}  label="Online"     value={up}             accent="bg-mk-ok/15 text-mk-ok" />
         <StatCard icon={AlertTriangle} label="Offline"    value={down}           accent="bg-mk-err/15 text-mk-err" />
-        <StatCard icon={WifiOff}       label="Без интернета" value={noNet}       accent="bg-mk-warn/15 text-mk-warn" />
         <StatCard icon={Activity}      label="Аварийные reboot" value={abnormal} accent="bg-mk-warn/15 text-mk-warn" />
       </div>
 
