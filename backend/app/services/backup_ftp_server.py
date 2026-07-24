@@ -201,23 +201,19 @@ def stop_server() -> None:
             _INSTANCE = None
 
 
-def detect_host_ip(target: str = "8.8.8.8") -> str:
-    """Определяет локальный адрес через маршрут к target."""
+def detect_push_host(default: str | None = None) -> str:
+    """Подсказка: IP контроллера, как его видят устройства.
+    Берётся через udp-сокет к 8.8.8.8 (соединение не открывается).
+    Используется fallback, если в ENV не задан BACKUP_PUSH_HOST.
+    """
+    if default:
+        return default
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(1)
-        s.connect((target, 80))
+        s.settimeout(0.3)
+        s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
         s.close()
         return ip
-    except Exception as exc:
-        logger.warning("Cannot detect host IP via {}: {}", target, exc)
+    except Exception:
         return "0.0.0.0"
-
-def detect_push_host(default: str | None = None,target: str | None = None,) -> str:
-    """Возвращает IP контроллера, который видит устройство."""
-    if default:
-        return default
-
-    return detect_host_ip(target or "8.8.8.8")
-
